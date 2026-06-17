@@ -138,10 +138,18 @@ jobs:
           vcpkgGitCommitId: ${{ env.VCPKG_COMMIT_ID }}
 
       - name: Install vcpkg dependencies
+        shell: bash
         run: |
-          $VCPKG_ROOT/vcpkg install --triplet x64-windows-static `
-            --x-install-root="$VCPKG_ROOT/installed"
-        shell: pwsh
+          if ! $VCPKG_ROOT/vcpkg install --triplet x64-windows-static --x-install-root="$VCPKG_ROOT/installed"; then
+            find "${VCPKG_ROOT}/" -name "*.log" | while read -r _1; do
+              echo "$_1:"
+              echo "======"
+              cat "$_1"
+              echo "======"
+              echo ""
+            done
+            exit 1
+          fi
 
       - name: Build RustDesk
         run: |
